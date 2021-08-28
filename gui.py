@@ -98,7 +98,7 @@ def save_updates(rb):
     editor.destroy()
     ID_update_input.delete(0, END)
 
-
+#
 #Create update function. Update info at the give ID.
 def id_update():
     global editor
