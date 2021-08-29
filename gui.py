@@ -5,6 +5,7 @@ from tkinter import messagebox
 import sqlite3
 import random
 
+#Create and config window
 root = Tk()
 root.title("first GUI")
 root.geometry("400x475")
@@ -17,7 +18,7 @@ def add_question_db():
     #Create coursor
     cr = conn.cursor()
 
-    #Insert into table
+    #Insert into question table
     cr.execute(("INSERT INTO questions  VALUES (:question, :a, :b, :c, :correct_anser)"),
                {
                    "question": question_input.get(),
@@ -52,7 +53,7 @@ def show_question_db():
     frm.config(background = '#EEECEB')
     frm.pack()
 
-
+    #Create treetable
     tv= ttk.Treeview(top, column = (1,2,3,4,5,6) ,show = "headings")
     tv.pack()
 
@@ -68,15 +69,17 @@ def show_question_db():
     tv.column(5, minwidth=0, width=100, stretch=NO, anchor = CENTER)
     tv.heading(6, text = "Correct answer")
     tv.column(6, minwidth=0, width=50, stretch=NO, anchor = CENTER)
-
+    #Fill the tree table
     for i in rows:
         tv.insert('','end',value = i)
 
+#Create function for save changes from ID Editing line
 def save_updates(rb):
     conn = sqlite3.connect('questions.db')
-    # Create coursor
     cr = conn.cursor()
+    #Get ID from ID box.
     rowid = ID_update_input.get()
+    #Edit current infromation at this ID
     cr.execute("""UPDATE questions SET
         question = :question,
         a = :a,
@@ -98,7 +101,7 @@ def save_updates(rb):
     editor.destroy()
     ID_update_input.delete(0, END)
 
-#
+
 #Create update function. Update info at the give ID.
 def id_update():
     global editor
@@ -111,6 +114,7 @@ def id_update():
     # Create coursor
     cr = conn.cursor()
     update_id = ID_update_input.get()
+    #Get the information at the current ID row.
     cr.execute("SELECT * FROM questions WHERE rowid = " + update_id)
     question_information = cr.fetchall()
 
@@ -144,9 +148,8 @@ def id_update():
     answer_b_input_editor.grid(row=5, column=1, columnspan=3, padx=1, pady=10)
     answer_c_input_editor= Entry(editor, width=57)
     answer_c_input_editor.grid(row=6, column=1, columnspan=3)
-
+    #Create radiobuttons
     m = StringVar(editor)
-    # Create Radio Buttons about update answers!
 
     Radiobutton(editor, text="a:", variable= m, value="a").grid(row=8, column=1, sticky=N)
     Radiobutton(editor, text="b:", variable= m, value="b").grid(row=8, column=2, sticky=N)
@@ -155,6 +158,7 @@ def id_update():
     update_buttons_editor = Button(editor, text="Update ID", command=lambda: save_updates(m.get()))
     update_buttons_editor.grid(row=9, column=0, columnspan=5, ipadx=150, ipady=10, pady=5, sticky=E)
 
+    #Fill the epmty boxes with current ID information. That will help to visualise the current question and the information about it.
     for info in question_information:
         question_input_editor.insert(0, info[0])
         answer_a_input_editor.insert(0, info[1])
@@ -162,6 +166,7 @@ def id_update():
         answer_c_input_editor.insert(0, info[3])
         m.set(info[4])
 
+#Function for new window that ask you infromation about your name and how many questions you want to solve.
 def start_test():
     global test
     test = Toplevel()
@@ -171,6 +176,7 @@ def start_test():
     conn = sqlite3.connect('questions.db')
     # Create coursor
     cr = conn.cursor()
+    #Takes information about how many rows there are in the table.
     rows_into_table = list(cr.execute("select count(*) from questions"))
     rows_into_table = rows_into_table[0][0]
     global start_button
@@ -178,7 +184,8 @@ def start_test():
     global tests_number_box
     global guesser_name_box
     global myLable1
-    myLable = Label(test, text = f"How much test you want to make in range(0 to {rows_into_table})")
+    #Asks you for the number of questions and your name.
+    myLable = Label(test, text = f"How many tests do you want to do in range(0 to {rows_into_table})")
     myLable.grid(row=0,column = 0)
     myLable.config(font =("Ariel", 13))
     tests_number_box = Entry(test, width = 10)
@@ -190,15 +197,16 @@ def start_test():
     guesser_name_box = Entry(test, width=30)
     guesser_name_box.grid(row=3, column=0, ipady=7, pady=5, padx=5)
 
-    start_button = Button(test, text = "button", command = click, state = 'normal')
+    start_button = Button(test, text = "START", command = click, state = 'normal')
     start_button.grid(row=4,column = 0, ipady = 10, ipadx = 40, pady = 5, padx = 5)
 
 
 
-
+#Function that comes after clicking on the start button after filling the empty boxes.
 def click():
     global test_numbers
     global guesser_name
+    #Takes information from the boxes about your name and questons and delete boxes and labels.
     test_numbers = int(tests_number_box.get())
     guesser_name =  guesser_name_box.get()
     start_button.destroy()
@@ -207,16 +215,19 @@ def click():
     tests_number_box.destroy()
     guesser_name_box.destroy()
     tests_number_box.destroy()
+    #Call show_tests function.
     show_tests()
 
+#Display all questions in a new window
 def show_tests():
+    #Connect to the DB and create coursor.
     conn = sqlite3.connect('questions.db')
-    # Create coursor
     cr = conn.cursor()
     rows_into_table = list(cr.execute("select count(*) from questions"))
     rows_into_table = int(rows_into_table[0][0])
     global question_rows
     question_rows = []
+    #Generate non-repeatable IDs
     while not len(question_rows) == test_numbers:
         random_number = random.randint(1, rows_into_table-1)
         if not random_number in question_rows:
@@ -225,6 +236,7 @@ def show_tests():
     global names
     names = []
     name = 'a'
+    #Create diffrent names for radiobuttons.The number is the same as question's number.
     for index in range(len(question_rows)):
         names.append(name)
         name+="a"
@@ -232,6 +244,8 @@ def show_tests():
 
     i = 0
     m = 0
+
+    # Display all questions
     for el in question_rows:
         el = str(el)
         print(el)
@@ -250,32 +264,21 @@ def show_tests():
         Radiobutton(test, text=' ', variable=names[m], value='b').grid(row=i+2, column=0 , sticky = E)
         Radiobutton(test, text=' ', variable=names[m], value='c').grid(row=i+3, column=0 , sticky = E)
 
-
-
-
-
-        # a = StringVar(test)
-        # Radiobutton(text, text='' , variable = )
-        # check_button = Button(test, text = "next test",command = check_results)
-        # check_button.grid(row=0, column =1)
-        # if your_anser == correct_ans:
-        #     print("Correct")
-        #     correct_a += 1
-        # else:
-        #     print("Incorrect")
-        #     incorrect_a += 1
         i+=6
         m+=1
+
+    #Create button for submitting results.
     check_results_button = Button(test, text = "Submit and check results", command = submit_decision)
     check_results_button.grid(row=i+6, column = 0, columnspan = len(question_rows))
 
-
+#Create function that submits results into DB and shows result.
 def submit_decision():
+    #Connect to DB and create coursor
     conn = sqlite3.connect('questions.db')
-    # Create coursor
     cr = conn.cursor()
     correct = 0
     incorrect = 0
+    #Gets current question's answer and compares it with the right answer from DB.
     for index in range(len(names)):
         ri = question_rows[index]
         question = list(cr.execute("SELECT * FROM questions WHERE rowid = %s" %ri))
@@ -288,15 +291,19 @@ def submit_decision():
             incorrect +=1
     score_in_percent = correct / (correct + incorrect ) * 100
     formated_score_in_percent = round(score_in_percent,2)
+    #Insert result into DB by name.
     result_list = [guesser_name, correct, incorrect, formated_score_in_percent]
     cr.execute(("INSERT INTO results  VALUES (?,?,?,?)"), result_list)
     conn.commit()
+    #PopUp message box that shows your result.Have an option to check all your results.
     message_result =messagebox.askquestion("Results",f"Your correct answers are: {correct}\r\nYour inccorect answers are:{incorrect}\r\nDo you want to check all your results?")
+    #Creates a table and fills it with your results.
     if message_result == "yes":
+        test.destroy()
         cr.execute("SELECT * FROM results WHERE name = '%s'" % guesser_name)
         y = cr.fetchall()
 
-
+        #Create a  new window.
         results_by_name = Toplevel()
         results_by_name.title("Results by name")
         results_by_name.configure(bg='#EEECEB')
@@ -316,9 +323,10 @@ def submit_decision():
         tv.column(4, minwidth=0, width=100, stretch=NO, anchor=CENTER)
         for i in y:
             tv.insert('', 'end', value=i)
+    #Close the test window.
     else:
         test.destroy()
-
+#Create a function that creates a new window and asks you about what do you want to search.
 def search_in_results1():
     global search_box
     global search_in_results
@@ -335,7 +343,7 @@ def search_in_results1():
     search_button = Button(search_in_results, text = "Search", command = return_results)
     search_button.grid(row=3,column = 0)
 
-
+#Looks in the DB and returns results.
 def return_results():
     conn = sqlite3.connect('questions.db')
     # Create coursor
@@ -427,4 +435,5 @@ start_test_button = Button(root, text = "Start Test", command = start_test)
 start_test_button.grid(row = 12, column = 1 , columnspan = 3, ipadx = 155, ipady = 10, pady = 5, sticky = E)
 search_in_results = Button(root, text = "Search in results", command = search_in_results1)
 search_in_results.grid(row = 13, column = 1 , columnspan = 3, ipadx = 137, ipady = 10, pady = 5, sticky = E)
+
 root.mainloop()
