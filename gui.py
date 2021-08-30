@@ -245,7 +245,7 @@ def show_tests():
     i = 0
     m = 0
 
-    # Display all questions
+    # Display all questions/ question ---> answers ----> radiobuton ---->repate.
     for el in question_rows:
         el = str(el)
         print(el)
